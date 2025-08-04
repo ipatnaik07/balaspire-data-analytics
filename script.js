@@ -145,7 +145,7 @@ function getTopEnemies(data, selectedClass, topN = 5) {
   return sorted;
 }
 
-function getBestTrinketPairs(data, selectedClass, trinketName) {
+function getBestTrinketPairs(data, selectedClass, trinketName, topN = 5) {
   const totals = new Map();
   const counts = new Map();
 
@@ -174,10 +174,53 @@ function getBestTrinketPairs(data, selectedClass, trinketName) {
         ];
       })
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
+      .slice(0, topN)
   );
 }
 
+function getBestCardPairs(data, selectedClass, cardName, topN = 5) {
+  const pairTotals = new Map();
+
+  const targetCard = cardName.startsWith('card_')
+    ? cardName
+    : `card_${cardName.toLowerCase().replace(/ /g, '_')}`;
+
+  data.forEach(entry => {
+    if (selectedClass !== 'all' && entry.playerClass !== selectedClass) return;
+    if (!entry.cardUseCounts?.keys) return;
+
+    const damage = parseFloat(entry.averageOutgoingDamage);
+    if (isNaN(damage) || damage <= 0) return;
+
+    const cards = entry.cardUseCounts.keys;
+    if (!cards.includes(targetCard)) return;
+
+    for (const otherCard of cards) {
+      if (otherCard === targetCard) continue;
+
+      if (!pairTotals.has(otherCard)) {
+        pairTotals.set(otherCard, { totalDamage: 0, count: 0 });
+      }
+
+      const stats = pairTotals.get(otherCard);
+      stats.totalDamage += damage;
+      stats.count += 1;
+    }
+  });
+
+  const averaged = Array.from(pairTotals.entries())
+    .map(([card, { totalDamage, count }]) => [card, totalDamage / count])
+    .filter(([, avg]) => !isNaN(avg) && isFinite(avg))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, topN);
+
+  return Object.fromEntries(
+    averaged.map(([card, avg]) => [
+      card.replace(/^card_/, '').replace(/_/g, ' '),
+      Math.round(avg)
+    ])
+  );
+}
 
 function createBarChart(canvasId, chartTitle, name, labels, data, color = '#4e79a7') {
   const ctx = document.getElementById(canvasId).getContext('2d');
@@ -274,9 +317,11 @@ function load (selectedClass, data) {
   renderCircles('cardCircles', cards);
   const enemies = getTopEnemies(data, selectedClass);
   renderEnemies('enemyStats', enemies);
-  const pairs = getBestTrinketPairs(data, selectedClass, `trinket_${trinkets[0]?.name}`)
-  createBarChart('barChart3', `best combos with ${trinkets[0]?.name}`, 'Avg Dmg', Object.keys(pairs), Object.values(pairs), '#2dd4bf');
-  console.log(Object.values(pairs));
+  const trinketPairs = getBestTrinketPairs(data, selectedClass, `trinket_${trinkets[0]?.name}`)
+  createBarChart('barChart3', `best combos with trinket ${trinkets[0]?.name}`, 'Avg Dmg', Object.keys(trinketPairs), Object.values(trinketPairs), '#2dd4bf');
+  const cardPairs = getBestCardPairs(data, selectedClass, `card_${cards[0]?.name}`)
+  console.log(cardPairs);
+  createBarChart('barChart4', `best combos with card ${cards[0]?.name}`, 'Avg Dmg', Object.keys(cardPairs), Object.values(cardPairs), '#2dd4bf');
 };
 
 document.getElementById('class-selector').addEventListener('change', function (e) {
@@ -303,4 +348,16 @@ document.getElementById('updateTrinketGraph').addEventListener('click', () => {
   const data = Object.values(pairs);
 
   createBarChart('barChart3', `best combos with ${trinket}`, 'Avg Dmg', labels, data, '#2dd4bf');
+});
+
+document.getElementById('updateCardGraph').addEventListener('click', () => {
+  const card = document.getElementById('cardInput').value.trim().toLowerCase();
+  if (!card) return;
+
+  const selectedClass = document.getElementById('class-selector').value;
+  const pairs = getBestCardPairs(rawData, selectedClass, `card_${card}`);
+  const labels = Object.keys(pairs);
+  const data = Object.values(pairs);
+
+  createBarChart('barChart4', `best combos with ${card}`, 'Avg Dmg', labels, data, '#2dd4bf');
 });
