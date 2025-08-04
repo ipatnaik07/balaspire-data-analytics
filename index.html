@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class Analytics Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer src="script.js"></script>
+</head>
+
+<body>
+  <header>
+    <div class="header-left">
+      <img id="character-image" src="Characters/kitsunagi.png">
+      <div id="header-title">class: kitsunagi</div>
+    </div>
+    <label id="pick-rate-label">Pick Rate: 0%</label>
+    <select id="class-selector">
+      <option>kitsunagi</option>
+      <option>knyaight</option>
+      <option>meowgician</option>
+      <option>mouseketeer</option>
+      <option>nekomancer</option>
+      <option>all</option>
+    </select>
+  </header>
+  
+  <div class="chart-container">
+    <canvas id="barChart1" width="480" height="320"></canvas>
+    <canvas id="barChart2" width="480" height="320"></canvas>
+  </div>
+
+  <div class="circle-row">
+    <div class="circle-section">
+      <h2>Common Trinkets</h2>
+      <div id="trinketCircles" class="circle-container"></div>
+    </div>
+
+    <div class="circle-section">
+      <h2>Common Cards</h2>
+      <div id="cardCircles" class="circle-container"></div>
+    </div>
+  </div>
+
+  <h2>Enemy Win Rates</h2>
+  <div class="enemy-stats" id="enemyStats"></div>
+
+  <div class="chart-with-input">
+    <canvas id="barChart3" width="480" height="320"></canvas>
+
+    <div class="trinket-input-panel">
+      <input type="text" id="trinketInput" placeholder="Enter trinket name..." />
+      <button id="updateTrinketGraph">Show Best Combos</button>
+    </div>
+  </div>
+
+</body>
+</html>
