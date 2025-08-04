@@ -1,4 +1,5 @@
-interactive visualiser for balaspire test data
+interactive visualiser for balaspire playtesting data
+use this link for testing: https://ipatnaik07.github.io/balaspire-data-analytics/
 
 features
   - filter by character (or select all)
